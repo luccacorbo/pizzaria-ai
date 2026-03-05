@@ -1,0 +1,18 @@
+fastapi==0.115.12
+uvicorn[standard]==0.34.2
+
+# Banco de dados
+SQLAlchemy==2.0.40
+
+# Validação / models
+pydantic==2.11.4
+
+# Auth & segurança
+python-jose==3.4.0
+passlib[bcrypt]==1.7.4
+
+# Upload de arquivos / forms
+python-multipart==0.0.20
+
+# Variáveis de ambiente
+python-dotenv==1.1.0
