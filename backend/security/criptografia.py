@@ -1,6 +1,6 @@
 from passlib.context import CryptContext
-from core.config import settings
 from fastapi.security import OAuth2PasswordBearer
+from backend.core.config import settings
 
 
 SECRET_KEY = settings.SECRET_KEY

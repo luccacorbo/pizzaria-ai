@@ -3,16 +3,16 @@ from datetime import timedelta
 
 #acesso ao bd
 from sqlalchemy.orm import Session
-from models.models import Usuario
-from core.dependencies import pegar_sessao
+from backend.models.models import Usuario
+from backend.core.dependencies import pegar_sessao
 
 #segurança
-from security.criptografia import bcrypt_context
-from security.authenticator import autenticar_usuario
-from security.jwt_handler import criar_token, verificar_token
+from backend.security.criptografia import bcrypt_context
+from backend.security.authenticator import autenticar_usuario
+from backend.security.jwt_handler import criar_token, verificar_token
 from fastapi.security import OAuth2PasswordRequestForm
 
-from schemas.schemas import UsuaruioSchema, LoginSchema
+from backend.schemas.schemas import UsuaruioSchema, LoginSchema
 
 auth_router = APIRouter(prefix="/auth")
 

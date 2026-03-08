@@ -1,5 +1,5 @@
-from security.criptografia import bcrypt_context
-from models.models import Usuario
+from backend.security.criptografia import bcrypt_context
+from backend.models.models import Usuario
 
 def autenticar_usuario(email, senha, session):
     usuario = session.query(Usuario).filter(Usuario.email==email).first()

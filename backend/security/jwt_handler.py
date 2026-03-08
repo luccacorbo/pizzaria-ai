@@ -1,11 +1,11 @@
 from fastapi import Depends, HTTPException
-from core.config import settings
 from datetime import datetime, timedelta, timezone
-from jose import jwt, JWTError
 from sqlalchemy.orm import Session
-from core.dependencies import pegar_sessao
-from models.models import Usuario
-from security.criptografia import oauth2_schema
+from jose import jwt, JWTError
+from backend.core.config import settings
+from backend.core.dependencies import pegar_sessao
+from backend.models.models import Usuario
+from backend.security.criptografia import oauth2_schema
 
 
 def criar_token(id_usuario, duracao_token=timedelta(minutes=settings.ACESS_TOKEN_EXPIRE_MINUTES)):
