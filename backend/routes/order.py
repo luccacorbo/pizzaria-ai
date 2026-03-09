@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from backend.schemas.schemas import PedidoSchema, ItemPedidoSchema
+from typing import List
+from backend.schemas.schemas import PedidoSchema, ItemPedidoSchema, ResponsePedidoSchema
 from backend.models.models import Pedido, Usuario, ItemPedido
 from backend.security.jwt_handler import verificar_token
 from backend.core.dependencies import pegar_sessao
@@ -18,19 +19,6 @@ async def criar_pedido(pedido_schema: PedidoSchema, session:Session = Depends(pe
     session.commit()
     return{"mensagem": f"pedido criado com sucesso. ID do pedido {novo_pedido.id}"}
 
-@order_router.post("/pedido/cancelar/{id_pedido}")
-async def cancelar_pedido(id_pedido: int, session: Session = Depends(pegar_sessao), usuario: Usuario = Depends(verificar_token)):
-    pedido = session.query(Pedido).filter(Pedido.id==id_pedido).first()
-    if not pedido: 
-        raise HTTPException(status_code=400, detail="pedido não encontrado")
-    if not usuario.admin and usuario.id != pedido.usuario:
-        raise HTTPException(status_code=401, detail="Voce não tem autorização")
-    pedido.status = "CANCELADO"
-    session.commit()
-    return{
-        "mensagem": f"pedido numero: {pedido.id} cancelado com sucesso",
-        "pedido": pedido
-    }
 
 @order_router.post("/pedido/adicionar-item/{id_pedido}")
 async def adicionar_item_pedido(id_pedido:int,
@@ -70,6 +58,7 @@ async def remover_item_pedido(id_item_pedido:int,
     session.commit()
     return{
         "mensagem": "item removido com sucesso",
+        "preço predido": len(pedido.itens),
         "pedido": pedido
     }
 
@@ -82,3 +71,54 @@ async def listar_pedidos(session: Session = Depends(pegar_sessao), usuario: Usua
         return {
             "pedidos": pedidos
         }
+    
+@order_router.post("/pedido/cancelar/{id_pedido}")
+async def cancelar_pedido(id_pedido: int, session: Session = Depends(pegar_sessao), usuario: Usuario = Depends(verificar_token)):
+    pedido = session.query(Pedido).filter(Pedido.id==id_pedido).first()
+    if not pedido: 
+        raise HTTPException(status_code=400, detail="pedido não encontrado")
+    if not usuario.admin and usuario.id != pedido.usuario:
+        raise HTTPException(status_code=401, detail="Voce não tem autorização")
+    pedido.status = "CANCELADO"
+    session.commit()
+    return{
+        "mensagem": f"pedido numero: {pedido.id} cancelado com sucesso",
+        "pedido": pedido
+    }
+
+# finalizar pedido 
+@order_router.post("/pedido/finalizar/{id_pedido}")
+async def finalizar_pedido(id_pedido: int, session: Session = Depends(pegar_sessao), usuario: Usuario = Depends(verificar_token)):
+    pedido = session.query(Pedido).filter(Pedido.id==id_pedido).first()
+    if not pedido: 
+        raise HTTPException(status_code=400, detail="pedido não encontrado")
+    if not usuario.admin and usuario.id != pedido.usuario:
+        raise HTTPException(status_code=401, detail="Voce não tem autorização")
+    pedido.status = "FINALIZADO"
+    session.commit()
+    return{
+        "mensagem": f"pedido numero: {pedido.id} FINALIZADO com sucesso",
+        "pedido": pedido
+    }
+
+# vizualizar 1 pedido
+@order_router.get("/pedido/{id_pedido}")
+async def vizualizar_pedido(id_pedido: int, session: Session = Depends(pegar_sessao), usuario: Usuario = Depends(verificar_token)):
+    pedido = session.query(Pedido).filter(Pedido.id==id_pedido).first()
+    if not pedido:
+        raise HTTPException(status_code=400, detail="pedido não encontrado")
+    if not pedido: 
+        raise HTTPException(status_code=400, detail="pedido não encontrado")
+    if not usuario.admin and usuario.id != pedido.usuario:
+        raise HTTPException(status_code=401, detail="Voce não tem autorização")
+    return{
+        "quantidade_itens_pedido": len(pedido.itens),
+        "pedido": pedido
+    }
+
+
+# vizualizar todos os pedidos de 1 usuario
+@order_router.get("/listar/pedidos-usuario", response_model=List[ResponsePedidoSchema])
+async def listar_pedidos(session: Session = Depends(pegar_sessao), usuario: Usuario = Depends(verificar_token)):
+        pedidos = session.query(Pedido).filter(Pedido.usuario==usuario.id).all()
+        return  pedidos
