@@ -1,8 +1,8 @@
-"""geracao inicial
+"""initial
 
-Revision ID: 618ec570ed52
+Revision ID: e8f913597de2
 Revises: 
-Create Date: 2026-02-16 11:41:08.291932
+Create Date: 2026-03-09 15:53:46.323161
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '618ec570ed52'
+revision: str = 'e8f913597de2'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -28,7 +28,8 @@ def upgrade() -> None:
     sa.Column('senha', sa.String(), nullable=False),
     sa.Column('ativo', sa.Boolean(), nullable=True),
     sa.Column('admin', sa.Boolean(), nullable=True),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('email')
     )
     op.create_table('pedidos',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
