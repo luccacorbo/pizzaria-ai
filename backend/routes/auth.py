@@ -50,6 +50,23 @@ async def login(login_schema: LoginSchema,session: Session = Depends(pegar_sessa
             "token_type": "Bearer"
         }
     
+#rota de login admin
+@auth_router.post("/admin/login")
+async def admin_login(login_schema: LoginSchema,session: Session = Depends(pegar_sessao)):
+    usuario = autenticar_usuario(login_schema.email, login_schema.senha, session)
+    if not usuario:
+        raise HTTPException(status_code=401, detail="Usuário não encontrado")
+    if not usuario.admin:
+        raise HTTPException(status_code=403, detail="Acesso restrito a administradores")
+    else:
+        access_token = criar_token(usuario.id)
+        refresh_token = criar_token(usuario.id, duracao_token=timedelta(days=7))
+        return{
+            "access_token": access_token,
+            "refresh_token": refresh_token,
+            "token_type": "Bearer"
+        }
+    
 @auth_router.post("/login-form")
 async def login_form(dados_form: OAuth2PasswordRequestForm = Depends(), session: Session = Depends(pegar_sessao)):
     usuario = autenticar_usuario(dados_form.username, dados_form.password, session)
