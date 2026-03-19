@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, String, Integer, Boolean, Float, ForeignKey 
+from sqlalchemy import create_engine, Column, String, Integer, Boolean,DECIMAL, Float, ForeignKey 
 from sqlalchemy.orm import declarative_base, relationship
 from sqlalchemy_utils.types import ChoiceType
 from backend.core.config import settings
@@ -48,14 +48,43 @@ class ItemPedido(Base):
 
     id = Column("id", Integer, primary_key=True, autoincrement=True)
     quantidade = Column("quantidade", Integer) 
-    sabor = Column("sabor", String)
-    tamanho = Column("tamanho", String)
     preco_unitario = Column("preco_unitario", Float)
-    pedido = Column("pedido", ForeignKey("pedidos.id") )
 
-    def __init__(self, quantidade, sabor, tamanho, preco_unitario, pedido):
-        self.quantidade = quantidade
-        self.sabor = sabor
-        self.tamanho = tamanho
-        self.preco_unitario = preco_unitario
-        self.pedido = pedido
+    pedido_id = Column(Integer, ForeignKey("pedidos.id"))
+    product_id = Column(Integer, ForeignKey("products.id"))
+    product_size_id = Column(Integer, ForeignKey("product_sizes.id"))
+
+#categoria de produtos
+class Category(Base):
+    __tablename__ = "categories"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    parent_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
+    active = Column(Boolean, default=True)
+
+    parent = relationship("Category", remote_side=[id], backref="children")
+
+#tabela para produtos do site(criavel para admins)
+class Product(Base):
+    __tablename__ = "products"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    description = Column(String)
+    active = Column(Boolean, default=True)
+
+    category_id = Column(Integer, ForeignKey("categories.id"))
+    category = relationship("Category", backref="products")
+
+    sizes = relationship("ProductSize", back_populates="product")
+
+class ProductSize(Base):
+    __tablename__ = "product_sizes"
+
+    id = Column(Integer, primary_key=True)
+    size = Column(String)  # Pequena, Média, Grande
+    price = Column(DECIMAL(10, 2))
+
+    product_id = Column(Integer, ForeignKey("products.id"))
+    product = relationship("Product", back_populates="sizes")
