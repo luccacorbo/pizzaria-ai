@@ -60,10 +60,8 @@ class Category(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
-    parent_id = Column(Integer, ForeignKey("categories.id"), nullable=True)
     active = Column(Boolean, default=True)
 
-    parent = relationship("Category", remote_side=[id], backref="children")
 
 #tabela para produtos do site(criavel para admins)
 class Product(Base):
@@ -72,6 +70,7 @@ class Product(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     description = Column(String)
+    price = Column(Float)
     active = Column(Boolean, default=True)
 
     category_id = Column(Integer, ForeignKey("categories.id"))
@@ -84,7 +83,6 @@ class ProductSize(Base):
 
     id = Column(Integer, primary_key=True)
     size = Column(String)  # Pequena, Média, Grande
-    price = Column(DECIMAL(10, 2))
 
     product_id = Column(Integer, ForeignKey("products.id"))
     product = relationship("Product", back_populates="sizes")

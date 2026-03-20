@@ -11,11 +11,17 @@ class UsuaruioSchema(BaseModel):
     class Config:
         from_attributes = True
 
-class PedidoSchema(BaseModel):
-    usuario: int
+class ProdutoSchema(BaseModel):
+    nome: str
+    descricao: str
+    preco: float
+    ativo: Optional[bool]
+    category_id: int
 
     class Config:
         from_attributes = True
+
+
 
 class LoginSchema(BaseModel):
     email: str
@@ -32,6 +38,13 @@ class ItemPedidoSchema(BaseModel):
     class Config:
         from_attributes = True
 
+class PedidoSchema(BaseModel):
+    usuario: int
+    itens: List[ItemPedidoSchema]
+
+    class Config:
+        from_attributes = True
+        
 class ResponsePedidoSchema(BaseModel):
     id: int
     status: str

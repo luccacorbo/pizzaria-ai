@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from backend.schemas.schemas import PedidoSchema, ItemPedidoSchema, ResponsePedidoSchema
-from backend.models.models import Pedido, Usuario, ItemPedido
+from backend.models.models import Pedido, Usuario, ItemPedido, Product
 from backend.security.jwt_handler import verificar_token
 from backend.core.dependencies import pegar_sessao
 
@@ -13,33 +13,34 @@ async def pedidos():
     return {"order": "ok"}
 
 @order_router.post("/pedido")
-async def criar_pedido(pedido_schema: PedidoSchema, session:Session = Depends(pegar_sessao)):
+async def criar_pedido(pedido_schema: PedidoSchema, session: Session = Depends(pegar_sessao)):
+    
     novo_pedido = Pedido(usuario=pedido_schema.usuario)
     session.add(novo_pedido)
-    session.commit()
-    return{"mensagem": f"pedido criado com sucesso. ID do pedido {novo_pedido.id}"}
+    session.flush()  # gera o id do pedido sem commitar ainda
 
+    for item in pedido_schema.itens:
+        produto = session.query(Product).filter(Product.id == item.product_id).first()
+        if not produto:
+            raise HTTPException(status_code=404, detail=f"Produto {item.product_id} não encontrado")
 
-@order_router.post("/pedido/adicionar-item/{id_pedido}")
-async def adicionar_item_pedido(id_pedido:int,
-                                item_pedido_schema: ItemPedidoSchema,
-                                session: Session = Depends(pegar_sessao),
-                                usuario: Usuario = Depends(verificar_token)):
-    
-    pedido = session.query(Pedido).filter(Pedido.id==id_pedido).first()
-    if not pedido:
-        raise HTTPException(status_code=400, detail="Pedido não existente")
-    if not usuario.admin and usuario.id != pedido.usuario:
-        raise HTTPException(status_code=401, detail="Você não tem autorização")
-    item_pedido = ItemPedido(item_pedido_schema.quantidade, item_pedido_schema.sabor,
-                              item_pedido_schema.tamanho, item_pedido_schema.preco_unitario, id_pedido)
-    session.add(item_pedido)
-    pedido.calcular_preco()
+        novo_item = ItemPedido(
+            quantidade=item.quantidade,
+            product_id=item.product_id,
+            product_size_id=item.product_size_id,
+            pedido_id=novo_pedido.id,
+            preco_unitario=produto.price
+        )
+        session.add(novo_item)
+
+    session.flush()
+    novo_pedido.calcular_preco()
     session.commit()
-    return{
-        "mensagem": "item criado com sucesso",
-        "item-id": item_pedido.id,
-        "preco_pedido": pedido.preco
+
+    return {
+        "mensagem": "Pedido criado com sucesso",
+        "id_pedido": novo_pedido.id,
+        "preco_total": novo_pedido.preco
     }
 
 @order_router.post("/pedido/remover-item/{id_item_pedido}")
